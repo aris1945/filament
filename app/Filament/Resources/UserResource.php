@@ -16,23 +16,28 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\UserResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\UserResource\RelationManagers;
+use Filament\Forms\Components\Card;
+use Filament\Forms\Components\Section;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-users';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('nik'),
-                TextInput::make('name'),
-                TextInput::make('email'),
-                Select::make('roles')
-                ->relationship('roles', 'name'),
-                TextInput::make('password')
+                Section::make('Create New User')
+                    ->schema([
+                        TextInput::make('nik'),
+                        TextInput::make('name'),
+                        TextInput::make('email'),
+                        Select::make('roles')
+                            ->relationship('roles', 'name'),
+                        TextInput::make('password')
+                    ])
             ]);
     }
 
@@ -77,9 +82,7 @@ class UserResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
+            'index' => Pages\ManageUsers::route('/'),
         ];
     }
 }

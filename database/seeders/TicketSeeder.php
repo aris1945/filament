@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Traits\HasRoles;
 
 class TicketSeeder extends Seeder
 {
@@ -14,7 +15,7 @@ class TicketSeeder extends Seeder
     public function run(): void
     {
         DB::table('tickets')->insert([
-            'ticket_number' => 'SQT66663',
+            'ticket_number' => 'SQT00001',
             'category' => 'GGN',
             'subcategory' => 'NODE-B',
             'status' => 'assigned',

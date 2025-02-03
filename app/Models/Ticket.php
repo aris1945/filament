@@ -9,6 +9,9 @@ use Illuminate\Notifications\Notifiable;
 
 class Ticket extends Model
 {
+    const STATUS_ASSIGNED = 'assigned';
+    const STATUS_DONE = 'done';
+
     protected $fillable = [
       'ticket_number',
       'category',
@@ -16,6 +19,7 @@ class Ticket extends Model
       'assigned_to',
       'evident_image',
       'description',
+      'status',
     ];
 
     public function user()

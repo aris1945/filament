@@ -31,7 +31,12 @@ class TicketResource extends Resource
 {
     protected static ?string $model = Ticket::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-ticket';
+
+    public static function canCreate(): bool
+    {
+        return !auth()->user()->hasRole('teknisi');
+    }
 
     public static function form(Form $form): Form
     {
@@ -44,15 +49,22 @@ class TicketResource extends Resource
                         Select::make('category')
                             ->options([
                                 'psb' => 'PSB',
-                                'ggn' => 'GGN'
+                                'ggn' => 'GGN',
+                                'preventive' => 'PREVENTIVE',
+                                'exbis' => 'EXBIS',
+                                'lainnya' => 'LAINNYA'
                             ]),
                         Select::make('subcategory')
                             ->options([
                                 'node_b' => 'NODE-B',
-                                'olo' => 'OLO'
+                                'olo' => 'OLO',
+                                'patroli' => 'PATROLI',
+                                'mitratel' => 'MITRATEL',
+                                'lintasarta' => 'LINTASARTA',
+                                'tis' => 'TIS'
                             ]),
                         TextArea::make('description')
-                        ->label('Description'),
+                            ->label('Description'),
                         TextInput::make('status')
                             ->disabled()
                             ->placeholder('assigned'),
@@ -63,11 +75,29 @@ class TicketResource extends Resource
                             ->label('Assigned To')
                             ->required()
                             ->placeholder('Select User'),
-                        FileUpload::make('evident_image')  // Menambahkan field upload gambar
-                            ->label('Evident')
-                            ->disk('public')  // Pastikan disk yang digunakan sesuai
-                            ->directory('evident')  // Folder untuk menyimpan gambar
-                            ->preserveFilenames()  // Menjaga nama file asli
+                        FileUpload::make('evident_image')
+                            ->label('Evident Image')
+                            ->disk('public')
+                            ->directory('evident_images')
+                            ->visibility('public')
+                            ->required(fn () => auth()->user()->hasRole('teknisi'))
+                            ->image()
+                            ->maxSize(5120)
+                            ->imagePreviewHeight('250')
+                            ->downloadable()
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg'])
+                            ->preserveFilenames()
+                            ->visible(function ($record) {
+                                return auth()->user()->hasRole('teknisi') && 
+                                       $record && 
+                                       $record->status === 'assigned';
+                            })
+                            ->mutateDehydratedStateUsing(function ($state, $record) {
+                                if ($state && auth()->user()->hasRole('teknisi')) {
+                                    $record->status = 'done';
+                                }
+                                return $state;
+                            }),
                     ])
             ]);
     }
@@ -102,6 +132,8 @@ class TicketResource extends Resource
                     ->searchable(),
                 TextColumn::make('status')
                     ->label('Status')
+                    ->badge()
+                    ->color(fn ($record) => $record->status === 'done' ? 'success' : 'warning')
                     ->searchable(),
                 TextColumn::make('assigned_to')
                     ->label('Assigned To')
@@ -110,23 +142,29 @@ class TicketResource extends Resource
                         return $record->user ? "{$record->user->nik} - {$record->user->name}" : 'Unassigned';
                     }),
                 TextColumn::make('description')
-                -> label('Description'),
+                    ->label('Description'),
                 TextColumn::make('created_at')
                     ->label('Created At')
                     ->searchable(),
                 TextColumn::make('updated_at')
                     ->label('Updated At')
                     ->searchable(),
-                ImageColumn::make('evident_image')  // Menggunakan ImageColumn untuk menampilkan gambar
+                ImageColumn::make('evident_image')
                     ->label('Evident Image')
-                    ->square(),
+                    ->disk('public')
+                    ->visibility('public')
+                    ->url(fn($record) => $record->evident_image ? Storage::disk('public')->url($record->evident_image) : null),
+
             ])
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
-                    ->label('Update'),
+                    ->visible(fn ($record) => 
+                        !auth()->user()->hasRole('teknisi') || 
+                        ($record->status === 'assigned')
+                    ),
                 ...(Auth::user()->hasRole('teknisi') ? [] : [Tables\Actions\DeleteAction::make()]),
             ])
             ->bulkActions([

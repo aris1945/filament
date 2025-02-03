@@ -15,10 +15,10 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         User::create([
-            'nik' => '19930270', // NIK contoh
-            'name' => 'B',
-            'email' => 'b@example.com',
-            'password' => bcrypt('password'), // Hashing password agar aman
+            'nik' => '18990339', // NIK contoh
+            'name' => 'Aris',
+            'email' => 'aris@example.com',
+            'password' => bcrypt('18990339'), // Hashing password agar aman
         ]);
     }
 }

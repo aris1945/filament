@@ -88,8 +88,4 @@ return [
         'enabled' => true,
     ],
 
-    'auth_provider_model' => [
-        'fqcn' => 'App\\Models\\User',
-    ],
-
 ];
